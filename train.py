@@ -141,28 +141,6 @@ def prepare_pretrain(model, train_loader, seed_word_list, device, top_num=20, ma
                         all_mask_pos.append(valid_idx[valid_doc].detach().cpu())
                         all_input_mask.append(input_mask[valid_doc].detach().cpu())
                         all_labels += [i] * torch.sum(valid_doc).item()
-
-#             for i, cat_word_id in enumerate(seed_word_list):
-#                 match_idx = torch.zeros(input_ids.shape).bool().to(device)
-#                 for word_id in cat_word_id:
-#                     match_idx = (input_ids == word_id) | match_idx
-
-#                 if torch.sum(match_idx).item() > 0:
-#                     sorted_val, sorted_res = torch.sort(predictions[match_idx], dim=-1, descending=True)
-
-#                     for j, word_list in enumerate(sorted_res):
-#                         hit_keywords = set(word_list[:top_num].detach().cpu().numpy()) & set(cat_word_id)
-#                         for k_id, k in enumerate(threshold):
-#                             if len(hit_keywords) > k:
-#                                 if k == 10:
-#                                     cur_inputs_ids = input_ids[torch.where(match_idx)[0][j]].clone().unsqueeze(0)
-#                                     cur_label = -100 * torch.ones(cur_inputs_ids.shape, dtype=torch.long)
-#                                     cur_label[0, torch.where(match_idx)[1][j]] = i
-#                                     all_input_ids.append(cur_inputs_ids.detach().cpu())
-#                                     all_labels.append(cur_label)
-#                                     all_input_mask.append(input_mask[torch.where(match_idx)[0][j]].detach().cpu().unsqueeze(0))
-#                                 all_pred_labels[k_id].append(i)
-#                                 all_true_labels[k_id].append(labels[torch.where(match_idx)[0][j]].item())
     
     all_input_ids = torch.cat(all_input_ids, dim=0)
     all_embs = torch.cat(all_embs, dim=0)
@@ -228,28 +206,6 @@ def prepare_pretrain_weighted(model, train_loader, seed_word_list, device, top_n
                         all_mask_pos.append(valid_idx[valid_doc].detach().cpu())
                         all_input_mask.append(input_mask[valid_doc].detach().cpu())
                         all_labels += [i] * torch.sum(valid_doc).item()
-
-#             for i, cat_word_id in enumerate(seed_word_list):
-#                 match_idx = torch.zeros(input_ids.shape).bool().to(device)
-#                 for word_id in cat_word_id:
-#                     match_idx = (input_ids == word_id) | match_idx
-
-#                 if torch.sum(match_idx).item() > 0:
-#                     sorted_val, sorted_res = torch.sort(predictions[match_idx], dim=-1, descending=True)
-
-#                     for j, word_list in enumerate(sorted_res):
-#                         hit_keywords = set(word_list[:top_num].detach().cpu().numpy()) & set(cat_word_id)
-#                         for k_id, k in enumerate(threshold):
-#                             if len(hit_keywords) > k:
-#                                 if k == 10:
-#                                     cur_inputs_ids = input_ids[torch.where(match_idx)[0][j]].clone().unsqueeze(0)
-#                                     cur_label = -100 * torch.ones(cur_inputs_ids.shape, dtype=torch.long)
-#                                     cur_label[0, torch.where(match_idx)[1][j]] = i
-#                                     all_input_ids.append(cur_inputs_ids.detach().cpu())
-#                                     all_labels.append(cur_label)
-#                                     all_input_mask.append(input_mask[torch.where(match_idx)[0][j]].detach().cpu().unsqueeze(0))
-#                                 all_pred_labels[k_id].append(i)
-#                                 all_true_labels[k_id].append(labels[torch.where(match_idx)[0][j]].item())
     
     all_input_ids = torch.cat(all_input_ids, dim=0)
     all_weights = torch.cat(all_weights, dim=0)
@@ -553,36 +509,7 @@ def self_train(model, test_loader, update_interval, batch_size, epochs, device, 
         high_conf_idx = torch.where(conf > self_conf_threshold)[0]
         print(f"Delta label: {(1 - torch.sum(pred_labels == last_pred_labels).item() / len(pred_labels))*100:.2f}%")
         last_pred_labels = pred_labels
-            
-#     reg_iterator = iter(pretrain_loader)
-#     for i in range(total_steps):
-#         if i % update_interval == 0 and not i == 0:
-#             training_time = format_time(time.time() - t0)
-#             print(f"\nStep: {i}\tTraining took: {training_time}\tlr: {optimizer.param_groups[0]['lr']:.4g}")
-#             output = inference(model, test_loader, device)
-#             target_scores = output[0]
-#             pred_labels = output[1]
-#             conf, _ = torch.max(target_scores, dim=-1)
-#             high_conf_idx = torch.where(conf > self_conf_threshold)[0]
-#             print(f"Delta label: {(1 - torch.sum(pred_labels == last_pred_labels).item() / len(pred_labels))*100:.2f}%")
-#             last_pred_labels = pred_labels
-
-#         if cur_idx + batch_size < len(target_scores):
-#             select_idx = list(range(cur_idx, cur_idx + batch_size))
-#         else:
-#             select_idx = list(range(cur_idx, len(target_scores))) + list(range((cur_idx + batch_size) % len(target_scores)))
-#         cur_idx = (cur_idx + batch_size) % len(target_scores)
-#         select_idx = [idx for idx in select_idx if idx in high_conf_idx]
-
-#         batch = (all_input_ids[select_idx], all_input_mask[select_idx], target_scores[select_idx])
-#         try:
-#             reg_batch = next(reg_iterator)
-#         except StopIteration:
-#             reg_iterator = iter(pretrain_loader)
-#             reg_batch = next(reg_iterator)
-
-#         train(model, batch, reg_batch, optimizer, scheduler, device, mask_id, rank_loss_weight=0.0, topic_loss_weight=0.0)
-    
+        
     return total_loss, total_acc
 
 
