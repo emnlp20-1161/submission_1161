@@ -73,32 +73,6 @@ class BertClass(BertPreTrainedModel):
         
         return attn_mask
     
-    
-    def mask_tokens(self, inputs):
-        labels = inputs.clone()
-        probability_matrix = torch.full(labels.shape, self.mlm_probability)
-        special_tokens_mask = [self.tokenizer.get_special_tokens_mask(val, already_has_special_tokens=True) 
-                               for val in labels.tolist()]
-        probability_matrix.masked_fill_(torch.tensor(special_tokens_mask, dtype=torch.bool), value=0.0)
-
-        padding_mask = labels.eq(self.tokenizer.pad_token_id)
-        probability_matrix.masked_fill_(padding_mask, value=0.0)
-
-        masked_indices = torch.bernoulli(probability_matrix).bool()
-        labels[~masked_indices] = -100
-
-        # 80% of the time, we replace masked input tokens with tokenizer.mask_token ([MASK])
-        indices_replaced = torch.bernoulli(torch.full(labels.shape, 0.8)).bool() & masked_indices
-        inputs[indices_replaced] = self.tokenizer.convert_tokens_to_ids(self.tokenizer.mask_token)
-
-        # 10% of the time, we replace masked input tokens with random word
-        indices_random = torch.bernoulli(torch.full(labels.shape, 0.5)).bool() & masked_indices & ~indices_replaced
-        random_words = torch.randint(len(self.tokenizer), labels.shape, dtype=torch.long)
-        inputs[indices_random] = random_words[indices_random]
-
-        # The rest of the time (10% of the time) we keep the masked input tokens unchanged
-        return inputs, labels
-    
     def forward(self, input_ids, pred_mode, cls_attn_mask=None, attention_mask=None, token_type_ids=None, 
                 position_ids=None, head_mask=None, inputs_embeds=None, labels=None, with_attn=False, with_states=False):
         bert_outputs = self.bert(input_ids,
