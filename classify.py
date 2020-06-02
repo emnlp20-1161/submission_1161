@@ -145,28 +145,3 @@ else:
     print('No GPU available, using the CPU instead.')
     device = torch.device("cpu")
 
-
-train_loader = create_dataset("../datasets/agnews/", "train.txt", "train_labels.txt", "train.pt", max_len=100, batch_size=64)
-test_loader = create_dataset("../datasets/agnews/", "test.txt", "test_labels.txt", "test.pt", max_len=100, batch_size=64)
-
-num_labels = 4
-
-model = BertClass.from_pretrained(
-    "bert-base-uncased", # Use the 12-layer BERT model, with an uncased vocab.
-    num_labels=num_labels,
-    output_attentions=False, # Whether the model returns attentions weights.
-    output_hidden_states=False, # Whether the model returns all hidden-states.
-)
-
-model.to(device)
-if num_gpu > 1:
-    model = nn.DataParallel(model)
-    # model = DataParallelModel(model)
-optimizer = AdamW(model.parameters(), lr=2e-5, eps=1e-8)
-epochs = 1
-total_steps = len(train_loader) * epochs
-scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=total_steps)
-# model.module.freeze_bert_encoder()
-
-train(model, train_loader, test_loader, epochs)
-
