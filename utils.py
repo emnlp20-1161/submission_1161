@@ -58,17 +58,12 @@ def csv2txt(file_dir, file_name):
     for i, row in enumerate(csv_reader):
         if "agnews" in file_dir or "dbpedia" in file_dir or "amazon" in file_dir:
             doc = row[1] + '. ' + row[2]
-        elif "yahoo" in file_dir:
-            assert len(row) == 4
-            doc = row[1] + '. ' + row[2] + '. ' + row[3]
         elif "imdb" in file_dir:
             if i == 0:
                 continue
             assert len(row) == 2
             doc = row[0]
             row[0] = imdb_map[row[1]]
-        elif "yelp" in file_dir:
-            doc = row[1]
         docs.append(doc)
         labels.append(int(row[0]) - 1)
 
@@ -166,10 +161,3 @@ def show_params(model):
         print("{:<55} {:>12}".format(p[0], str(tuple(p[1].size()))))
 
     return
-
-# dataset = 'amazon'
-# # csv2txt(f"../datasets/{dataset}/", "train.csv")
-# csv2txt(f"../datasets/{dataset}/", "test.csv")
-# # train_loader = create_dataset(f"../datasets/{dataset}/", "train.txt", "train_labels.txt", "train.pt", show_stats=True, max_len=400)
-# test_loader = create_dataset(f"../datasets/{dataset}/", "test.txt", "test_labels.txt", "test.pt", show_stats=True, max_len=150)
-
